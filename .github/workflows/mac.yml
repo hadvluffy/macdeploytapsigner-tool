@@ -62,13 +62,13 @@ jobs:
           export CPPFLAGS="$CPPFLAGS -I/usr/local/opt/qt@5/include -I/usr/local/opt/boost@1.76/include -I/usr/local/opt/berkeley-db@4/include -I/usr/local/Cellar/sqlcipher/4.5.1/include"
           export BOOST_ROOT="/usr/local/opt/boost@1.76"
 
-          mv tapsigner-tool.app/Contents/MacOS/tapsigner-tool tapsigner-tool.app/Contents/MacOS/tapsigner
-          mv tapsigner-tool.app tapsigner.app
+          #mv tapsigner-tool.app/Contents/MacOS/tapsigner-tool tapsigner-tool.app/Contents/MacOS/tapsigner
+          #mv tapsigner-tool.app tapsigner.app
          
 
-          macdeployqt tapsigner.app -qmldir=${{runner.workspace}}/tapsigner-tool
+          macdeployqt tapsigner-tool.app -qmldir=${{runner.workspace}}/tapsigner-tool
           mkdir tapsigner-tool
-          mv Nunchuk.app tapsigner-tool
+          mv tapsigner-tool.app tapsigner-tool
           zip -r tapsigner-tool.zip tapsigner-tool
 
       
