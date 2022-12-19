@@ -62,12 +62,14 @@ jobs:
           export CPPFLAGS="$CPPFLAGS -I/usr/local/opt/qt@5/include -I/usr/local/opt/boost@1.76/include -I/usr/local/opt/berkeley-db@4/include -I/usr/local/Cellar/sqlcipher/4.5.1/include"
           export BOOST_ROOT="/usr/local/opt/boost@1.76"
 
-          #mv hwi nunchuck-client-qt.app/Contents/MacOS/hwi
-          #mv nunchuck-client-qt.app/Contents/MacOS/nunchuck-client-qt nunchuck-client-qt.app/Contents/MacOS/Nunchuk
-          ##mv nunchuck-client-qt.app Nunchuk.app
-        # 
-          #macdeployqt Nunchuk.app -qmldir=${{runner.workspace}}/tapsigner-tool
-      
+          mv tapsigner-tool.app/Contents/MacOS/tapsigner-tool tapsigner-tool.app/Contents/MacOS/tapsigner
+          mv tapsigner-tool.app tapsigner.app
+         
+
+          macdeployqt tapsigner.app -qmldir=${{runner.workspace}}/tapsigner-tool
+          mkdir tapsigner-tool
+          mv Nunchuk.app tapsigner-tool
+          zip -r tapsigner-tool.zip tapsigner-tool
 
       
       - name: Get the version
@@ -78,4 +80,4 @@ jobs:
         uses: 'actions/upload-artifact@v2'
         with:
           name: nunchuk-mac-${{ steps.get_version.outputs.VERSION }}
-          path: ${{runner.workspace}}/build/nunchuk-mac-qt.zip
+          path: ${{runner.workspace}}/build/tapsigner-tool.zip
