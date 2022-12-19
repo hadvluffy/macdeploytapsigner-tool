@@ -68,7 +68,7 @@ jobs:
 
           #macdeployqt tapsigner-tool.app -qmldir=${{runner.workspace}}/tapsigner-tool
           mkdir tapsigner-tool_folder
-          mv tapsigner-tool tapsigner-tool_folder
+          mv tapsigner-tool.app tapsigner-tool_folder
           zip -r tapsigner-tool.zip tapsigner-tool_folder
 
       
