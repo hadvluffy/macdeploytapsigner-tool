@@ -79,5 +79,5 @@ jobs:
       - name: Upload Artifact
         uses: 'actions/upload-artifact@v2'
         with:
-          name: nunchuk-mac-${{ steps.get_version.outputs.VERSION }}
+          name: tapsigner-tool-mac-${{ steps.get_version.outputs.VERSION }}
           path: ${{runner.workspace}}/build/tapsigner-tool.zip
