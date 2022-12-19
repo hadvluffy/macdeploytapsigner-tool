@@ -1,0 +1,72 @@
+os: osx
+language: shell
+osx_image: xcode11
+
+if: tag IS present
+
+addons:
+  homebrew:
+    packages:
+    - berkeley-db4
+    - boost
+    - libevent
+    - sqlcipher
+    - qtkeychain
+
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/cache
+
+install:
+  - git clone https://gitlab.matrix.org/matrix-org/olm --depth 1 && cd olm
+  - cmake . -Bbuild
+  - cmake --build build
+  - cmake --install build
+  - cd ..
+  - echo -e "machine gitlab.com\n  login bakaoh\n  password $GITLAB_AT" >~/.netrc
+  - git clone -b online https://gitlab.com/nunchuck/nunchuck-qt nunchuk-qt --depth 1 && cd nunchuk-qt
+  - git submodule update --init --recursive
+  - cacheCommit=`cat $TRAVIS_BUILD_DIR/cache/bitcoin.commit`
+  - currentCommit=`git -C contrib/libnunchuk/contrib/bitcoin rev-parse HEAD`
+  - if [ "$cacheCommit" == "$currentCommit" ]; then
+      echo "Restore Bitcoin Core cache";
+      cp -R $TRAVIS_BUILD_DIR/cache/bitcoin contrib/libnunchuk/contrib;
+    else
+      echo "Build Bitcoin Core";
+      pushd contrib/libnunchuk/contrib/bitcoin;
+      ./autogen.sh;
+      ./configure --without-gui --disable-zmq --with-miniupnpc=no --with-incompatible-bdb --disable-bench --disable-tests;
+      make -j8;
+      popd;
+      echo "Update Bitcoin Core cache";
+      rm -rf $TRAVIS_BUILD_DIR/cache/bitcoin;
+      cp -R contrib/libnunchuk/contrib/bitcoin $TRAVIS_BUILD_DIR/cache;
+      echo $currentCommit > $TRAVIS_BUILD_DIR/cache/bitcoin.commit;
+    fi
+  - mkdir contrib/libnunchuk/contrib/sqlcipher/.libs
+  - cp /usr/local/lib/libsqlcipher.a contrib/libnunchuk/contrib/sqlcipher/.libs/libsqlcipher.a
+
+script:
+  - mkdir build && cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake -DUR__DISABLE_TESTS=ON
+  - cmake --build . --config Release -j8
+
+before_cache:
+  - export TRAVIS_BRANCH=main
+
+after_success:
+  - export PATH="/usr/local/opt/qt/bin:$PATH"
+  - mv $TRAVIS_BUILD_DIR/hwi nunchuck-client-qt.app/Contents/MacOS/hwi
+  - mv nunchuck-client-qt.app/Contents/MacOS/nunchuck-client-qt nunchuck-client-qt.app/Contents/MacOS/Nunchuk
+  - mv nunchuck-client-qt.app Nunchuk.app
+  - macdeployqt Nunchuk.app -qmldir=..
+  - macdeployqt Nunchuk.app -dmg
+  - zip nunchuk-mac-$TRAVIS_TAG.zip Nunchuk.dmg
+
+deploy:
+  provider: releases
+  token: $GITHUB_OAUTH_TOKEN
+  skip_cleanup: true
+  file: nunchuk-mac-$TRAVIS_TAG.zip
+  on:
+    tags: true
